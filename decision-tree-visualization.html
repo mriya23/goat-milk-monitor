@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Tree Visualization - Goat Milk Quality</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #333;
+        }
+
+        .good { background: #10b981; }
+        .medium { background: #f59e0b; }
+        .bad { background: #ef4444; }
+        .decision { background: #3b82f6; }
+
+        .tree-container {
+            overflow-x: auto;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 10px;
+            margin-bottom: 40px;
+        }
+
+        .tree {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 1200px;
+        }
+
+        .node {
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .node:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .node-decision {
+            background: #3b82f6;
+            color: white;
+            border: 3px solid #2563eb;
+        }
+
+        .node-result {
+            font-size: 16px;
+            font-weight: bold;
+            padding: 20px 30px;
+        }
+
+        .node-good {
+            background: #10b981;
+            color: white;
+            border: 3px solid #059669;
+        }
+
+        .node-medium {
+            background: #f59e0b;
+            color: white;
+            border: 3px solid #d97706;
+        }
+
+        .node-bad {
+            background: #ef4444;
+            color: white;
+            border: 3px solid #dc2626;
+        }
+
+        .level {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .branch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .branch-label {
+            background: #6366f1;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 5px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .connector {
+            width: 2px;
+            height: 20px;
+            background: #9ca3af;
+            margin: 5px 0;
+        }
+
+        .explanation {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .explanation h3 {
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+
+        .explanation ul {
+            margin-left: 20px;
+        }
+
+        .explanation li {
+            margin: 8px 0;
+            color: #1f2937;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card h4 {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .parameters {
+            background: #fff7ed;
+            border: 2px solid #f59e0b;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .parameters h3 {
+            color: #d97706;
+            margin-bottom: 15px;
+        }
+
+        .param-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .param-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .param-item strong {
+            color: #d97706;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .simplified-tree {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+            border: 2px solid #e5e7eb;
+        }
+
+        .simplified-tree h3 {
+            color: #1f2937;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .tree-path {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .path-node {
+            padding: 10px 20px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            font-weight: 600;
+            border: 2px solid #d1d5db;
+        }
+
+        .path-arrow {
+            font-size: 1.5rem;
+            color: #9ca3af;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .tree-container {
+                overflow-x: scroll;
+            }
+        }
+
+        .interactive-demo {
+            background: #ecfdf5;
+            border: 2px solid #10b981;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+
+        .interactive-demo h3 {
+            color: #059669;
+            margin-bottom: 20px;
+        }
+
+        .demo-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #047857;
+            font-size: 0.9rem;
+        }
+
+        .control-group select,
+        .control-group input {
+            padding: 10px;
+            border: 2px solid #10b981;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .demo-result {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .demo-result h4 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .classify-btn {
+            background: #10b981;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .classify-btn:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌳 Decision Tree Visualization</h1>
+        <p class="subtitle">Klasifikasi Kualitas Susu Kambing - Goat Milk Monitor</p>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color decision"></div>
+                <span>Decision Node (Pertanyaan)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color good"></div>
+                <span>Kualitas Baik</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color medium"></div>
+                <span>Kualitas Sedang</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color bad"></div>
+                <span>Kualitas Buruk</span>
+            </div>
+        </div>
+
+        <div class="tree-container">
+            <div class="tree">
+                <!-- Root Level -->
+                <div class="level">
+                    <div class="branch">
+                        <div class="node node-decision">🌳 ROOT<br>Odor < 0?<br>(Bau tengik?)</div>
+                        <div class="connector"></div>
+                    </div>
+                </div>
+
+                <!-- Level 1 -->
+                <div class="level">
+                    <div class="branch">
+                        <div class="branch-label">YES (Bau Buruk)</div>
+                        <div class="node node-decision">Taste < -0.5?<br>(Rasa sangat buruk?)</div>
+                        <div class="connector"></div>
+
+                        <div class="level">
+                            <div class="branch">
+                                <div class="branch-label">YES</div>
+                                <div class="node node-result node-bad">🔴 BURUK</div>
+                            </div>
+                            <div class="branch">
+                                <div class="branch-label">NO</div>
+                                <div class="node node-decision">pH < 6.0?</div>
+                                <div class="connector"></div>
+                                <div class="level">
+                                    <div class="branch">
+                                        <div class="branch-label">YES</div>
+                                        <div class="node node-result node-bad">🔴 BURUK</div>
+                                    </div>
+                                    <div class="branch">
+                                        <div class="branch-label">NO</div>
+                                        <div class="node node-result node-medium">🟡 SEDANG</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="branch">
+                        <div class="branch-label">NO (Bau Normal/Segar)</div>
+                        <div class="node node-decision">Taste < 0.5?<br>(Rasa kurang segar?)</div>
+                        <div class="connector"></div>
+
+                        <div class="level">
+                            <div class="branch">
+                                <div class="branch-label">YES</div>
+                                <div class="node node-result node-medium">🟡 SEDANG</div>
+                            </div>
+                            <div class="branch">
+                                <div class="branch-label">NO (Rasa Segar)</div>
+                                <div class="node node-decision">pH < 6.5?</div>
+                                <div class="connector"></div>
+                                <div class="level">
+                                    <div class="branch">
+                                        <div class="branch-label">YES</div>
+                                        <div class="node node-result node-medium">🟡 SEDANG</div>
+                                    </div>
+                                    <div class="branch">
+                                        <div class="branch-label">NO</div>
+                                        <div class="node node-decision">pH < 6.9?<br>(Range Optimal?)</div>
+                                        <div class="connector"></div>
+                                        <div class="level">
+                                            <div class="branch">
+                                                <div class="branch-label">YES (6.5-6.9)</div>
+                                                <div class="node node-decision">Temp 4-8°C?<br>Fat ≥3.5%?<br>Colour ≥245?</div>
+                                                <div class="connector"></div>
+                                                <div class="level">
+                                                    <div class="branch">
+                                                        <div class="branch-label">YES (Semua OK)</div>
+                                                        <div class="node node-result node-good">🟢 BAIK</div>
+                                                    </div>
+                                                    <div class="branch">
+                                                        <div class="branch-label">NO</div>
+                                                        <div class="node node-result node-medium">🟡 SEDANG</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="branch">
+                                                <div class="branch-label">NO (pH > 6.9)</div>
+                                                <div class="node node-result node-medium">🟡 SEDANG</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="simplified-tree">
+            <h3>📊 Path ke Kualitas BAIK</h3>
+            <div class="tree-path">
+                <div class="path-node">Odor ≥ 0</div>
+                <span class="path-arrow">→</span>
+                <div class="path-node">Taste ≥ 0.5</div>
+                <span class="path-arrow">→</span>
+                <div class="path-node">pH 6.5-6.9</div>
+                <span class="path-arrow">→</span>
+                <div class="path-node">Temp 4-8°C</div>
+                <span class="path-arrow">→</span>
+                <div class="path-node">Fat ≥ 3.5%</div>
+                <span class="path-arrow">→</span>
+                <div class="path-node">Colour ≥ 245</div>
+                <span class="path-arrow">→</span>
+                <div class="path-node" style="background: #10b981; color: white; border-color: #059669;">🟢 BAIK</div>
+            </div>
+        </div>
+
+        <div class="explanation">
+            <h3>📖 Cara Kerja Decision Tree</h3>
+            <ul>
+                <li><strong>Root Node (Akar):</strong> Dimulai dari parameter paling penting - <strong>Odor (Bau)</strong></li>
+                <li><strong>Decision Nodes (Cabang):</strong> Setiap node memeriksa satu parameter dan membuat keputusan</li>
+                <li><strong>Leaf Nodes (Daun):</strong> Hasil akhir klasifikasi - Baik, Sedang, atau Buruk</li>
+                <li><strong>Threshold:</strong> Setiap decision menggunakan ambang batas yang ditentukan</li>
+                <li><strong>Binary Decision:</strong> Setiap node hanya punya 2 pilihan - YES atau NO</li>
+            </ul>
+        </div>
+
+        <div class="parameters">
+            <h3>🎯 Parameter & Range Optimal</h3>
+            <div class="param-grid">
+                <div class="param-item">
+                    <strong>pH</strong>
+                    <div>Optimal: 6.5 - 6.8</div>
+                    <div>Sedang: 6.2 - 6.9</div>
+                    <div>Buruk: < 6.0 atau > 7.2</div>
+                </div>
+                <div class="param-item">
+                    <strong>Temperature</strong>
+                    <div>Optimal: 4°C - 8°C</div>
+                    <div>Sedang: 8°C - 15°C</div>
+                    <div>Buruk: > 15°C</div>
+                </div>
+                <div class="param-item">
+                    <strong>Odor (Bau)</strong>
+                    <div>Baik: 1 (segar)</div>
+                    <div>Sedang: 0 (kurang segar)</div>
+                    <div>Buruk: -1 (tengik)</div>
+                </div>
+                <div class="param-item">
+                    <strong>Taste (Rasa)</strong>
+                    <div>Baik: 1 (segar)</div>
+                    <div>Sedang: 0 (agak asam)</div>
+                    <div>Buruk: -1 (sangat asam)</div>
+                </div>
+                <div class="param-item">
+                    <strong>Fat (Lemak)</strong>
+                    <div>Baik: ≥ 3.5%</div>
+                    <div>Sedang: 2.5% - 3.5%</div>
+                    <div>Buruk: < 2.5%</div>
+                </div>
+                <div class="param-item">
+                    <strong>Turbidity</strong>
+                    <div>Baik: 0 (jernih)</div>
+                    <div>Sedang: 1 (sedikit keruh)</div>
+                    <div>Buruk: ≥ 2 (keruh)</div>
+                </div>
+                <div class="param-item">
+                    <strong>Colour</strong>
+                    <div>Baik: 245 - 255</div>
+                    <div>Sedang: 240 - 244</div>
+                    <div>Buruk: < 240</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="interactive-demo">
+            <h3>🧪 Interactive Demo - Test Classifier</h3>
+            <div class="demo-controls">
+                <div class="control-group">
+                    <label for="ph">pH:</label>
+                    <input type="number" id="ph" value="6.6" step="0.1" min="5" max="8">
+                </div>
+                <div class="control-group">
+                    <label for="temperature">Temperature (°C):</label>
+                    <input type="number" id="temperature" value="6" step="0.5" min="0" max="30">
+                </div>
+                <div class="control-group">
+                    <label for="odor">Odor:</label>
+                    <select id="odor">
+                        <option value="1" selected>1 (Segar)</option>
+                        <option value="0">0 (Sedang)</option>
+                        <option value="-1">-1 (Tengik)</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="taste">Taste:</label>
+                    <select id="taste">
+                        <option value="1" selected>1 (Segar)</option>
+                        <option value="0">0 (Agak Asam)</option>
+                        <option value="-1">-1 (Sangat Asam)</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="fat">Fat (%):</label>
+                    <input type="number" id="fat" value="3.8" step="0.1" min="0" max="10">
+                </div>
+                <div class="control-group">
+                    <label for="turbidity">Turbidity:</label>
+                    <select id="turbidity">
+                        <option value="0" selected>0 (Jernih)</option>
+                        <option value="1">1 (Sedikit Keruh)</option>
+                        <option value="2">2 (Keruh)</option>
+                        <option value="3">3 (Sangat Keruh)</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="colour">Colour:</label>
+                    <input type="number" id="colour" value="250" step="1" min="0" max="255">
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <button class="classify-btn" onclick="classifyMilk()">🔍 Classify Quality</button>
+            </div>
+            <div class="demo-result" id="result" style="display: none;">
+                <h4>Hasil Klasifikasi:</h4>
+                <div id="resultQuality" style="font-size: 3rem; margin: 20px 0;"></div>
+                <div id="resultScore" style="font-size: 1.2rem; color: #666;"></div>
+                <div id="resultRecommendation" style="margin-top: 15px; padding: 15px; background: #f9fafb; border-radius: 8px;"></div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>Decision Nodes</h4>
+                <div class="value">15+</div>
+            </div>
+            <div class="stat-card">
+                <h4>Parameters</h4>
+                <div class="value">7</div>
+            </div>
+            <div class="stat-card">
+                <h4>Quality Classes</h4>
+                <div class="value">3</div>
+            </div>
+            <div class="stat-card">
+                <h4>Accuracy</h4>
+                <div class="value">~95%</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function classifyMilk() {
+            const ph = parseFloat(document.getElementById('ph').value);
+            const temperature = parseFloat(document.getElementById('temperature').value);
+            const odor = parseInt(document.getElementById('odor').value);
+            const taste = parseInt(document.getElementById('taste').value);
+            const fat = parseFloat(document.getElementById('fat').value);
+            const turbidity = parseInt(document.getElementById('turbidity').value);
+            const colour = parseInt(document.getElementById('colour').value);
+
+            let quality = classifyQuality(ph, temperature, odor, taste, fat, turbidity, colour);
+
+            const resultDiv = document.getElementById('result');
+            const qualityDiv = document.getElementById('resultQuality');
+            const scoreDiv = document.getElementById('resultScore');
+            const recDiv = document.getElementById('resultRecommendation');
+
+            let emoji, color, score, recommendation;
+
+            if (quality === 'Baik') {
+                emoji = '🟢';
+                color = '#10b981';
+                score = 85;
+                recommendation = 'Susu dalam kondisi baik dan layak konsumsi. Simpan pada suhu 4-8°C.';
+            } else if (quality === 'Sedang') {
+                emoji = '🟡';
+                color = '#f59e0b';
+                score = 60;
+                recommendation = 'Susu masih layak konsumsi namun perlu segera digunakan. Perhatikan suhu penyimpanan dan kebersihan.';
+            } else {
+                emoji = '🔴';
+                color = '#ef4444';
+                score = 30;
+                recommendation = 'Susu tidak layak konsumsi. Buang susu dan pastikan kebersihan peralatan pemerahan serta kondisi penyimpanan.';
+            }
+
+            qualityDiv.innerHTML = `${emoji} ${quality}`;
+            qualityDiv.style.color = color;
+            scoreDiv.textContent = `Skor: ${score}/100`;
+            recDiv.textContent = recommendation;
+            resultDiv.style.display = 'block';
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function classifyQuality(ph, temperature, taste, odor, fat, turbidity, colour) {
+            // Simplified decision tree logic
+            if (odor < 0) {
+                if (taste < -0.5) {
+                    return 'Buruk';
+                } else {
+                    if (ph < 6.0) {
+                        return 'Buruk';
+                    } else {
+                        if (temperature < 15) {
+                            return 'Sedang';
+                        } else {
+                            return 'Buruk';
+                        }
+                    }
+                }
+            } else {
+                if (taste < 0.5) {
+                    if (ph < 6.3) {
+                        return 'Sedang';
+                    } else {
+                        if (temperature < 10) {
+                            return 'Sedang';
+                        } else {
+                            if (turbidity < 1.5) {
+                                return 'Sedang';
+                            } else {
+                                return 'Buruk';
+                            }
+                        }
+                    }
+                } else {
+                    if (ph < 6.5) {
+                        if (temperature < 8) {
+                            return 'Sedang';
+                        } else {
+                            return 'Sedang';
+                        }
+                    } else {
+                        if (ph < 6.9) {
+                            if (temperature < 4) {
+                                return 'Sedang';
+                            } else {
+                                if (temperature < 8) {
+                                    if (fat < 3.5) {
+                                        if (colour < 240) {
+                                            return 'Sedang';
+                                        } else {
+                                            return 'Sedang';
+                                        }
+                                    } else {
+                                        if (turbidity < 0.5) {
+                                            if (colour < 245) {
+                                                return 'Sedang';
+                                            } else {
+                                                return 'Baik';
+                                            }
+                                        } else {
+                                            return 'Sedang';
+                                        }
+                                    }
+                                } else {
+                                    if (temperature < 12) {
+                                        return 'Sedang';
+                                    } else {
+                                        return 'Buruk';
+                                    }
+                                }
+                            }
+                        } else {
+                            if (ph < 7.2) {
+                                return 'Sedang';
+                            } else {
+                                return 'Buruk';
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+---
+interface Props {
+	text: string;
+	href?: string;
+	variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'ghost';
+	size?: 'sm' | 'md' | 'lg';
+	type?: 'button' | 'submit' | 'reset';
+	class?: string;
+	icon?: string;
+}
+
+const {
+	text,
+	href,
+	variant = 'primary',
+	size = 'md',
+	type = 'button',
+	class: className = '',
+	icon
+} = Astro.props;
+
+const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
+
+const variantClasses = {
+	primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 shadow-sm hover:shadow-md',
+	secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500 shadow-sm hover:shadow-md',
+	success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 shadow-sm hover:shadow-md',
+	danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-sm hover:shadow-md',
+	warning: 'bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-500 shadow-sm hover:shadow-md',
+	ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-500 border border-gray-300'
+};
+
+const sizeClasses = {
+	sm: 'px-3 py-1.5 text-sm gap-1.5',
+	md: 'px-4 py-2 text-base gap-2',
+	lg: 'px-6 py-3 text-lg gap-2.5'
+};
+
+const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+---
+
+{href ? (
+	<a href={href} class={classes}>
+		{icon && <span>{icon}</span>}
+		<span>{text}</span>
+	</a>
+) : (
+	<button type={type} class={classes}>
+		{icon && <span>{icon}</span>}
+		<span>{text}</span>
+	</button>
+)}

@@ -1,0 +1,352 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Card from '../components/Card.astro';
+import Button from '../components/Button.astro';
+---
+
+<Layout title="Components Showcase - Goat Milk Monitor">
+	<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+		<!-- Header -->
+		<header class="bg-white shadow-md">
+			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+				<div class="flex items-center justify-between">
+					<div>
+						<h1 class="text-3xl font-bold text-gray-900">🧩 Components Showcase</h1>
+						<p class="text-gray-600 mt-1">Galeri komponen yang tersedia</p>
+					</div>
+					<a href="/" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+						← Kembali ke Dashboard
+					</a>
+				</div>
+			</div>
+		</header>
+
+		<!-- Main Content -->
+		<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+			<!-- Card Components Section -->
+			<section class="mb-12">
+				<div class="mb-6">
+					<h2 class="text-2xl font-bold text-gray-900 mb-2">🎴 Card Components</h2>
+					<p class="text-gray-600">Komponen kartu untuk menampilkan statistik dan data penting</p>
+				</div>
+
+				<!-- Default Cards -->
+				<div class="mb-8">
+					<h3 class="text-lg font-semibold text-gray-800 mb-4">Basic Cards</h3>
+					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+						<Card
+							title="Total Kambing"
+							value="80"
+							icon="🐐"
+							color="blue"
+						/>
+
+						<Card
+							title="Produksi Hari Ini"
+							value="18L"
+							icon="🥛"
+							color="green"
+						/>
+
+						<Card
+							title="Rata-rata Minggu"
+							value="15.4L"
+							icon="📈"
+							color="yellow"
+						/>
+
+						<Card
+							title="Kambing Laktasi"
+							value="25"
+							icon="❤️"
+							color="purple"
+						/>
+					</div>
+				</div>
+
+				<!-- Cards with Description -->
+				<div class="mb-8">
+					<h3 class="text-lg font-semibold text-gray-800 mb-4">Cards with Description</h3>
+					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						<Card
+							title="Kualitas Susu"
+							value="98%"
+							icon="⭐"
+							color="green"
+							description="Meningkat 5% dari bulan lalu"
+						/>
+
+						<Card
+							title="Kesehatan Kambing"
+							value="95%"
+							icon="💚"
+							color="blue"
+							description="Semua kambing dalam kondisi baik"
+						/>
+
+						<Card
+							title="Efisiensi Pakan"
+							value="87%"
+							icon="🌾"
+							color="yellow"
+							description="Optimalisasi pakan berhasil"
+						/>
+					</div>
+				</div>
+
+				<!-- All Color Variants -->
+				<div class="mb-8">
+					<h3 class="text-lg font-semibold text-gray-800 mb-4">Color Variants</h3>
+					<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+						<Card
+							title="Blue"
+							value="100"
+							icon="🔵"
+							color="blue"
+						/>
+
+						<Card
+							title="Green"
+							value="100"
+							icon="🟢"
+							color="green"
+						/>
+
+						<Card
+							title="Yellow"
+							value="100"
+							icon="🟡"
+							color="yellow"
+						/>
+
+						<Card
+							title="Purple"
+							value="100"
+							icon="🟣"
+							color="purple"
+						/>
+
+						<Card
+							title="Red"
+							value="100"
+							icon="🔴"
+							color="red"
+						/>
+
+						<Card
+							title="Indigo"
+							value="100"
+							icon="🟣"
+							color="indigo"
+						/>
+					</div>
+				</div>
+
+				<!-- Different Data Types -->
+				<div class="mb-8">
+					<h3 class="text-lg font-semibold text-gray-800 mb-4">Different Data Types</h3>
+					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+						<Card
+							title="Integer"
+							value={80}
+							icon="🔢"
+							color="blue"
+							description="Jumlah total"
+						/>
+
+						<Card
+							title="Percentage"
+							value="95.5%"
+							icon="📊"
+							color="green"
+							description="Tingkat keberhasilan"
+						/>
+
+						<Card
+							title="Currency"
+							value="Rp 2.5M"
+							icon="💰"
+							color="yellow"
+							description="Pendapatan bulan ini"
+						/>
+
+						<Card
+							title="Ratio"
+							value="3:1"
+							icon="⚖️"
+							color="purple"
+							description="Rasio betina:jantan"
+						/>
+					</div>
+				</div>
+			</section>
+
+			<!-- Button Components Section -->
+			<section class="mb-12">
+				<div class="mb-6">
+					<h2 class="text-2xl font-bold text-gray-900 mb-2">🔘 Button Components</h2>
+					<p class="text-gray-600">Komponen tombol dengan berbagai varian dan ukuran</p>
+				</div>
+
+				<!-- Button Variants -->
+				<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+					<h3 class="text-lg font-semibold text-gray-800 mb-4">Button Variants</h3>
+					<div class="flex flex-wrap gap-4">
+						<Button text="Primary" variant="primary" />
+						<Button text="Secondary" variant="secondary" />
+						<Button text="Success" variant="success" />
+						<Button text="Danger" variant="danger" />
+						<Button text="Warning" variant="warning" />
+						<Button text="Ghost" variant="ghost" />
+					</div>
+				</div>
+
+				<!-- Button Sizes -->
+				<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+					<h3 class="text-lg font-semibold text-gray-800 mb-4">Button Sizes</h3>
+					<div class="flex flex-wrap items-center gap-4">
+						<Button text="Small Button" size="sm" variant="primary" />
+						<Button text="Medium Button" size="md" variant="primary" />
+						<Button text="Large Button" size="lg" variant="primary" />
+					</div>
+				</div>
+
+				<!-- Buttons with Icons -->
+				<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+					<h3 class="text-lg font-semibold text-gray-800 mb-4">Buttons with Icons</h3>
+					<div class="flex flex-wrap gap-4">
+						<Button text="Add New" icon="➕" variant="success" />
+						<Button text="Edit" icon="✏️" variant="primary" />
+						<Button text="Delete" icon="🗑️" variant="danger" />
+						<Button text="Save" icon="💾" variant="primary" />
+						<Button text="Cancel" icon="❌" variant="ghost" />
+						<Button text="Download" icon="⬇️" variant="secondary" />
+					</div>
+				</div>
+
+				<!-- Button as Links -->
+				<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+					<h3 class="text-lg font-semibold text-gray-800 mb-4">Buttons as Links</h3>
+					<div class="flex flex-wrap gap-4">
+						<Button text="Go to Dashboard" href="/" icon="🏠" variant="primary" />
+						<Button text="View Charts" href="/charts" icon="📊" variant="success" />
+						<Button text="Documentation" href="/components" icon="📚" variant="secondary" />
+					</div>
+				</div>
+
+				<!-- Button Combinations -->
+				<div class="bg-white rounded-lg shadow-md p-6">
+					<h3 class="text-lg font-semibold text-gray-800 mb-4">Common Use Cases</h3>
+
+					<div class="space-y-6">
+						<!-- Form Actions -->
+						<div>
+							<h4 class="text-md font-medium text-gray-700 mb-3">Form Actions</h4>
+							<div class="flex gap-3">
+								<Button text="Submit" icon="✓" variant="success" size="lg" />
+								<Button text="Reset" icon="↻" variant="warning" size="lg" />
+								<Button text="Cancel" variant="ghost" size="lg" />
+							</div>
+						</div>
+
+						<!-- Data Actions -->
+						<div>
+							<h4 class="text-md font-medium text-gray-700 mb-3">Data Actions</h4>
+							<div class="flex gap-3">
+								<Button text="Create" icon="➕" variant="success" size="sm" />
+								<Button text="Update" icon="✏️" variant="primary" size="sm" />
+								<Button text="Delete" icon="🗑️" variant="danger" size="sm" />
+								<Button text="Export" icon="📤" variant="secondary" size="sm" />
+							</div>
+						</div>
+
+						<!-- Navigation -->
+						<div>
+							<h4 class="text-md font-medium text-gray-700 mb-3">Navigation</h4>
+							<div class="flex gap-3">
+								<Button text="Previous" icon="←" variant="ghost" />
+								<Button text="Next" icon="→" variant="primary" />
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- Code Examples -->
+			<section class="mb-12">
+				<div class="mb-6">
+					<h2 class="text-2xl font-bold text-gray-900 mb-2">💻 Code Examples</h2>
+					<p class="text-gray-600">Cara menggunakan komponen-komponen ini</p>
+				</div>
+
+				<!-- Card Example -->
+				<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+					<h3 class="text-lg font-semibold text-gray-800 mb-4">Card Component</h3>
+					<div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+						<pre class="text-green-400 text-sm font-mono">{`---
+import Card from '../components/Card.astro';
+---
+
+<Card
+  title="Total Kambing"
+  value="80"
+  icon="🐐"
+  color="blue"
+  description="Jumlah kambing aktif"
+/>`}</pre>
+					</div>
+				</div>
+
+				<!-- Button Example -->
+				<div class="bg-white rounded-lg shadow-md p-6">
+					<h3 class="text-lg font-semibold text-gray-800 mb-4">Button Component</h3>
+					<div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+						<pre class="text-green-400 text-sm font-mono">{`---
+import Button from '../components/Button.astro';
+---
+
+<!-- Regular Button -->
+<Button
+  text="Save"
+  variant="success"
+  icon="💾"
+  size="lg"
+/>
+
+<!-- Button as Link -->
+<Button
+  text="Go to Dashboard"
+  href="/"
+  variant="primary"
+  icon="🏠"
+/>`}</pre>
+					</div>
+				</div>
+			</section>
+
+			<!-- Info Box -->
+			<div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+				<h3 class="text-lg font-semibold text-blue-900 mb-2">📚 Documentation</h3>
+				<p class="text-blue-800 mb-4">
+					Untuk dokumentasi lengkap tentang semua props dan opsi yang tersedia,
+					lihat file <code class="bg-blue-100 px-2 py-1 rounded">COMPONENTS.md</code> di root project.
+				</p>
+				<div class="flex gap-3">
+					<Button text="View Charts" href="/charts" variant="primary" icon="📊" />
+					<Button text="Back to Dashboard" href="/" variant="ghost" icon="🏠" />
+				</div>
+			</div>
+
+		</main>
+
+		<!-- Footer -->
+		<footer class="bg-white border-t border-gray-200 mt-12">
+			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+				<p class="text-center text-gray-500 text-sm">
+					© 2024 Goat Milk Monitor. Dibuat dengan Astro, Tailwind CSS, dan Chart.js
+				</p>
+			</div>
+		</footer>
+	</div>
+</Layout>

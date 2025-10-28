@@ -1,0 +1,87 @@
+---
+// Real-time data component that fetches from Firebase
+// This component can be used to display live updates from Firebase Realtime Database
+
+interface Props {
+  type: 'stats' | 'readings';
+  refreshInterval?: number; // in seconds
+}
+
+const { type, refreshInterval = 30 } = Astro.props;
+---
+
+<div id={`realtime-${type}`} data-type={type} data-refresh={refreshInterval}>
+  <slot />
+</div>
+
+<script>
+  import {
+    listenToDashboardStats,
+    listenToReadings,
+    listenToLatestReading,
+    type DashboardStats,
+    type ProcessedReading
+  } from '../lib/fetchData';
+
+  // Wait for DOM to be ready
+  document.addEventListener('DOMContentLoaded', () => {
+    const containers = document.querySelectorAll('[id^="realtime-"]');
+
+    containers.forEach((container) => {
+      const type = container.getAttribute('data-type');
+      const refreshInterval = parseInt(container.getAttribute('data-refresh') || '30') * 1000;
+
+      let unsubscribe: (() => void) | null = null;
+
+      // Setup real-time listener based on type
+      if (type === 'stats') {
+        unsubscribe = listenToDashboardStats((stats: DashboardStats) => {
+          // Dispatch custom event with the data
+          const event = new CustomEvent('stats-updated', {
+            detail: stats,
+            bubbles: true
+          });
+          container.dispatchEvent(event);
+        });
+      } else if (type === 'readings') {
+        unsubscribe = listenToReadings((readings: ProcessedReading[]) => {
+          const event = new CustomEvent('readings-updated', {
+            detail: readings,
+            bubbles: true
+          });
+          container.dispatchEvent(event);
+        });
+      }
+
+      // Cleanup on page unload
+      window.addEventListener('beforeunload', () => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  /* Optional: Add loading state styles */
+  [id^="realtime-"] {
+    position: relative;
+  }
+
+  [id^="realtime-"].loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+    animation: loading 1.5s infinite;
+  }
+
+  @keyframes loading {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+</style>

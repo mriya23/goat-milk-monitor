@@ -1,0 +1,158 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                   🔍 DEBUG INFORMATION - PREVIEW                          ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│                         🔍 Debug Information                              │
+├───────────────────────────────────────────────────────────────────────────┤
+│                                                                           │
+│   Last Update:                14:32:15                                    │
+│                                                                           │
+│   Total Readings:             20                                         │
+│                                                                           │
+│   Latest Reading Time:        11/01/2024, 14:30:45                       │
+│                                                                           │
+│   Auto Refresh:               Every 30 seconds                           │
+│                                                                           │
+│   Classification Method:      Decision Tree (7 parameters)               │
+│                                                                           │
+│   Status:                     Connected ✓                                │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                      📋 INFORMASI YANG DITAMPILKAN                        ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+🕐 Last Update:
+   • Menampilkan waktu terakhir dashboard di-refresh
+   • Update otomatis setiap 30 detik
+   • Format: HH:MM:SS (jam:menit:detik)
+
+📊 Total Readings:
+   • Jumlah total data yang tersimpan di Firebase
+   • Real-time count dari database
+
+🕒 Latest Reading Time:
+   • Waktu data terakhir yang diterima dari sensor
+   • Format: DD/MM/YYYY, HH:MM:SS
+
+⏱️ Auto Refresh:
+   • Interval otomatis refresh dashboard
+   • Default: Every 30 seconds
+   • Mengurangi load ke Firebase
+
+🌳 Classification Method:
+   • Metode yang digunakan untuk klasifikasi
+   • Decision Tree dengan 7 parameter:
+     1. pH
+     2. Temperature
+     3. Odor (dari MQ135)
+     4. Taste (dari pH)
+     5. Fat
+     6. Turbidity
+     7. Colour (dari RGB)
+
+✅ Status:
+   • Connection status ke Firebase
+   • Connected ✓ (hijau) = Terhubung
+   • Loading... (kuning) = Sedang memuat
+   • Error (merah) = Ada masalah
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                          🎨 DESIGN FEATURES                               ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+Background:      Light gray (#f9fafb)
+Font:            Monospace (untuk data teknis)
+Font Size:       0.85rem (readable)
+Padding:         15px
+Border Radius:   8px
+
+Color Coding:
+   • Labels:     Dark gray (#1f2937) - Bold
+   • Values:     Medium gray (#6b7280)
+   • Status OK:  Green (#10b981)
+   • Refresh:    Green (#10b981)
+   • Method:     Blue (#3b82f6)
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                        🔄 AUTO UPDATE BEHAVIOR                            ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+Setiap 30 detik:
+   1. Fetch data dari Firebase
+   2. Update "Last Update" dengan waktu sekarang
+   3. Update "Total Readings" dengan jumlah data
+   4. Update "Latest Reading Time" dengan timestamp data terakhir
+   5. Update "Status" menjadi "Connected ✓"
+   6. Console log: "Auto refresh... (every 30 seconds)"
+
+Timeline:
+   00:00 → Load data
+   00:30 → Auto refresh #1
+   01:00 → Auto refresh #2
+   01:30 → Auto refresh #3
+   ... dst
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                      🎯 KEGUNAAN DEBUG INFO                               ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+✅ Monitor connection status real-time
+✅ Lihat kapan terakhir data masuk
+✅ Track jumlah data yang tersimpan
+✅ Verify auto refresh bekerja
+✅ Confirm metode klasifikasi yang dipakai
+✅ Troubleshoot jika ada masalah koneksi
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                        💡 TIPS PENGGUNAAN                                 ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+📌 Jika "Last Update" tidak berubah:
+   • Check console browser (F12)
+   • Verify Firebase connection
+   • Check network tab
+
+📌 Jika "Total Readings" = 0:
+   • Data belum ada di Firebase
+   • Check ESP32 apakah sudah kirim data
+   • Verify Firebase rules
+
+📌 Jika "Status" = Error:
+   • Check internet connection
+   • Verify Firebase URL
+   • Check Firebase console
+
+📌 Jika "Latest Reading Time" terlalu lama:
+   • ESP32 mungkin tidak aktif
+   • Check sensor connections
+   • Verify ESP32 code
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                          🚀 TESTING                                       ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+1. npm run dev
+2. Buka http://localhost:4321
+3. Scroll ke bagian bawah dashboard
+4. Lihat section "🔍 Debug Information"
+5. Tunggu 30 detik, "Last Update" akan berubah
+6. Check semua info yang ditampilkan
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                        ✨ ADVANTAGES                                      ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+vs Chart:
+   ✅ Lebih ringan (no Chart.js)
+   ✅ Lebih cepat load
+   ✅ Info lebih teknis & useful
+   ✅ Debugging lebih mudah
+
+vs Tidak ada info:
+   ✅ Transparency - user tahu apa yang terjadi
+   ✅ Trust - user bisa verify data real
+   ✅ Troubleshooting - mudah identify masalah
+

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Charts - Goat Milk Monitor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .chart-container h2 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.2rem;
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            color: #666;
+        }
+        .status {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🥛 Test Charts - Goat Milk Monitor</h1>
+
+        <div class="status">
+            <div>
+                <strong>Firebase Status:</strong> <span id="status-text">Connecting...</span>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <div class="status-indicator" id="status-indicator"></div>
+                <button class="btn" onclick="loadData()">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <h3>Total Pembacaan</h3>
+                <div class="value" id="total-readings">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Rata-rata pH</h3>
+                <div class="value" id="avg-ph">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Rata-rata MQ135</h3>
+                <div class="value" id="avg-mq135">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Kualitas Baik</h3>
+                <div class="value" id="good-quality" style="color: #10b981;">0</div>
+            </div>
+        </div>
+
+        <div class="chart-grid">
+            <div class="chart-container">
+                <h2>📊 Tren pH Level</h2>
+                <div class="chart-wrapper">
+                    <canvas id="phChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h2>🌫️ Tren MQ135</h2>
+                <div class="chart-wrapper">
+                    <canvas id="mq135Chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <h2>📈 Distribusi Kualitas Susu</h2>
+            <div class="chart-wrapper">
+                <canvas id="qualityChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-container" style="margin-top: 20px;">
+            <h2>🔬 Kombinasi pH & MQ135</h2>
+            <div class="chart-wrapper" style="height: 350px;">
+                <canvas id="combinedChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase config
+        const FIREBASE_URL = 'https://goat-milk-monitor-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+        let phChart = null;
+        let mq135Chart = null;
+        let qualityChart = null;
+        let combinedChart = null;
+
+        // Fetch data from Firebase
+        async function fetchFirebaseData() {
+            try {
+                const response = await fetch(`${FIREBASE_URL}/readings.json`);
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('status-text').textContent = 'Error: ' + error.message;
+                document.getElementById('status-indicator').style.background = '#ef4444';
+                return null;
+            }
+        }
+
+        // Process readings
+        function processReadings(data) {
+            if (!data) return [];
+
+            const readings = Object.entries(data).map(([id, reading]) => ({
+                id,
+                ...reading,
+                dateTime: new Date(reading.timestamp),
+                quality: assessQuality(reading.pH, reading.mq135)
+            }));
+
+            return readings.sort((a, b) => b.dateTime - a.dateTime);
+        }
+
+        // Assess quality
+        function assessQuality(pH, mq135) {
+            const pHInRange = pH >= 6.4 && pH <= 6.7;
+            const goodAirQuality = mq135 < 70;
+
+            if (pHInRange && goodAirQuality) return 'Baik';
+            else if (pH >= 6.2 && pH <= 6.9 && mq135 < 100) return 'Sedang';
+            else return 'Buruk';
+        }
+
+        // Update stats
+        function updateStats(readings) {
+            if (readings.length === 0) return;
+
+            const totalReadings = readings.length;
+            const avgPH = readings.reduce((sum, r) => sum + r.pH, 0) / totalReadings;
+            const avgMQ135 = readings.reduce((sum, r) => sum + r.mq135, 0) / totalReadings;
+            const goodQuality = readings.filter(r => r.quality === 'Baik').length;
+
+            document.getElementById('total-readings').textContent = totalReadings;
+            document.getElementById('avg-ph').textContent = avgPH.toFixed(2);
+            document.getElementById('avg-mq135').textContent = Math.round(avgMQ135);
+            document.getElementById('good-quality').textContent = goodQuality;
+        }
+
+        // Create pH chart
+        function createPHChart(readings) {
+            const limitedReadings = readings.slice(0, 10).reverse();
+            const labels = limitedReadings.map(r => r.dateTime.toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit'
+            }));
+            const data = limitedReadings.map(r => r.pH);
+
+            if (phChart) phChart.destroy();
+
+            const ctx = document.getElementById('phChart');
+            phChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'pH Level',
+                        data: data,
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create MQ135 chart
+        function createMQ135Chart(readings) {
+            const limitedReadings = readings.slice(0, 10).reverse();
+            const labels = limitedReadings.map(r => r.dateTime.toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit'
+            }));
+            const data = limitedReadings.map(r => r.mq135);
+
+            if (mq135Chart) mq135Chart.destroy();
+
+            const ctx = document.getElementById('mq135Chart');
+            mq135Chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'MQ135 (Air Quality)',
+                        data: data,
+                        borderColor: 'rgb(16, 185, 129)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create Quality chart
+        function createQualityChart(readings) {
+            const goodQuality = readings.filter(r => r.quality === 'Baik').length;
+            const mediumQuality = readings.filter(r => r.quality === 'Sedang').length;
+            const poorQuality = readings.filter(r => r.quality === 'Buruk').length;
+
+            if (qualityChart) qualityChart.destroy();
+
+            const ctx = document.getElementById('qualityChart');
+            qualityChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Kualitas Baik', 'Kualitas Sedang', 'Kualitas Buruk'],
+                    datasets: [{
+                        data: [goodQuality, mediumQuality, poorQuality],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(239, 68, 68, 0.8)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create Combined chart
+        function createCombinedChart(readings) {
+            const limitedReadings = readings.slice(0, 15).reverse();
+            const labels = limitedReadings.map(r => r.dateTime.toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit'
+            }));
+            const pHData = limitedReadings.map(r => r.pH);
+            const mq135Data = limitedReadings.map(r => r.mq135);
+
+            if (combinedChart) combinedChart.destroy();
+
+            const ctx = document.getElementById('combinedChart');
+            combinedChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'pH Level',
+                            data: pHData,
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            yAxisID: 'y',
+                        },
+                        {
+                            label: 'MQ135',
+                            data: mq135Data,
+                            borderColor: 'rgb(245, 158, 11)',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            yAxisID: 'y1',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'pH Level'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'MQ135 (PPM)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                    }
+                }
+            });
+        }
+
+        // Load all data
+        async function loadData() {
+            console.log('Loading data from Firebase...');
+            document.getElementById('status-text').textContent = 'Loading...';
+            document.getElementById('status-indicator').style.background = '#f59e0b';
+
+            const data = await fetchFirebaseData();
+
+            if (!data) {
+                console.error('No data received');
+                return;
+            }
+
+            console.log('Raw data:', data);
+            const readings = processReadings(data);
+            console.log('Processed readings:', readings);
+
+            if (readings.length === 0) {
+                document.getElementById('status-text').textContent = 'No data in Firebase';
+                document.getElementById('status-indicator').style.background = '#ef4444';
+                return;
+            }
+
+            document.getElementById('status-text').textContent = `Connected - ${readings.length} readings`;
+            document.getElementById('status-indicator').style.background = '#10b981';
+
+            updateStats(readings);
+            createPHChart(readings);
+            createMQ135Chart(readings);
+            createQualityChart(readings);
+            createCombinedChart(readings);
+
+            console.log('All charts created successfully!');
+        }
+
+        // Make loadData globally accessible
+        window.loadData = loadData;
+
+        // Auto load on page load
+        window.addEventListener('load', () => {
+            console.log('Page loaded, fetching data...');
+            loadData();
+        });
+
+        // Auto refresh every 30 seconds
+        setInterval(() => {
+            console.log('Auto refresh...');
+            loadData();
+        }, 30000);
+    </script>
+</body>
+</html>

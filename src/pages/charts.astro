@@ -1,0 +1,282 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Chart from '../components/Chart.astro';
+
+// Line Chart Data
+const lineData = {
+	labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
+	datasets: [{
+		label: 'Produksi (Liter)',
+		data: [450, 520, 480, 590, 610, 650],
+		borderColor: 'rgb(59, 130, 246)',
+		backgroundColor: 'rgba(59, 130, 246, 0.1)',
+		tension: 0.4,
+		fill: true
+	}]
+};
+
+// Bar Chart Data
+const barData = {
+	labels: ['Kambing A', 'Kambing B', 'Kambing C', 'Kambing D', 'Kambing E'],
+	datasets: [{
+		label: 'Produksi per Kambing (Liter/Hari)',
+		data: [2.5, 3.2, 2.8, 3.5, 2.9],
+		backgroundColor: [
+			'rgba(59, 130, 246, 0.8)',
+			'rgba(16, 185, 129, 0.8)',
+			'rgba(245, 158, 11, 0.8)',
+			'rgba(239, 68, 68, 0.8)',
+			'rgba(139, 92, 246, 0.8)'
+		]
+	}]
+};
+
+// Pie Chart Data
+const pieData = {
+	labels: ['Pagi', 'Siang', 'Sore'],
+	datasets: [{
+		label: 'Distribusi Waktu Pemerahan',
+		data: [45, 30, 25],
+		backgroundColor: [
+			'rgba(59, 130, 246, 0.8)',
+			'rgba(16, 185, 129, 0.8)',
+			'rgba(245, 158, 11, 0.8)'
+		]
+	}]
+};
+
+// Radar Chart Data
+const radarData = {
+	labels: ['Protein', 'Lemak', 'Laktosa', 'Mineral', 'Vitamin'],
+	datasets: [{
+		label: 'Kualitas Susu Standar',
+		data: [85, 90, 80, 75, 88],
+		borderColor: 'rgb(59, 130, 246)',
+		backgroundColor: 'rgba(59, 130, 246, 0.2)',
+	}, {
+		label: 'Kualitas Susu Aktual',
+		data: [88, 85, 82, 78, 90],
+		borderColor: 'rgb(16, 185, 129)',
+		backgroundColor: 'rgba(16, 185, 129, 0.2)',
+	}]
+};
+
+// Polar Area Chart Data
+const polarData = {
+	labels: ['Pedet', 'Dara', 'Laktasi', 'Kering', 'Afkir'],
+	datasets: [{
+		label: 'Jumlah Kambing',
+		data: [15, 20, 25, 12, 8],
+		backgroundColor: [
+			'rgba(59, 130, 246, 0.6)',
+			'rgba(16, 185, 129, 0.6)',
+			'rgba(245, 158, 11, 0.6)',
+			'rgba(239, 68, 68, 0.6)',
+			'rgba(139, 92, 246, 0.6)'
+		]
+	}]
+};
+
+// Multi-line Chart Data
+const multiLineData = {
+	labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+	datasets: [
+		{
+			label: 'Kandang A',
+			data: [120, 135, 125, 145],
+			borderColor: 'rgb(59, 130, 246)',
+			backgroundColor: 'rgba(59, 130, 246, 0.1)',
+		},
+		{
+			label: 'Kandang B',
+			data: [110, 125, 130, 135],
+			borderColor: 'rgb(16, 185, 129)',
+			backgroundColor: 'rgba(16, 185, 129, 0.1)',
+		},
+		{
+			label: 'Kandang C',
+			data: [100, 115, 120, 125],
+			borderColor: 'rgb(245, 158, 11)',
+			backgroundColor: 'rgba(245, 158, 11, 0.1)',
+		}
+	]
+};
+---
+
+<Layout title="Chart Examples - Goat Milk Monitor">
+	<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+		<!-- Header -->
+		<header class="bg-white shadow-md">
+			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+				<div class="flex items-center justify-between">
+					<div>
+						<h1 class="text-3xl font-bold text-gray-900">📊 Chart Examples</h1>
+						<p class="text-gray-600 mt-1">Contoh berbagai tipe grafik dengan Chart.js</p>
+					</div>
+					<a href="/" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+						← Kembali ke Dashboard
+					</a>
+				</div>
+			</div>
+		</header>
+
+		<!-- Main Content -->
+		<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+			<!-- Info Box -->
+			<div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+				<h3 class="text-lg font-semibold text-blue-900 mb-2">ℹ️ Tentang Halaman Ini</h3>
+				<p class="text-blue-800">
+					Halaman ini mendemonstrasikan 6 tipe grafik berbeda yang tersedia dengan Chart.js.
+					Semua grafik responsive dan interaktif - hover untuk melihat detail data!
+				</p>
+			</div>
+
+			<!-- Line Chart -->
+			<div class="bg-white rounded-lg shadow-md p-6 mb-8">
+				<div class="mb-4">
+					<h2 class="text-2xl font-bold text-gray-900">Line Chart</h2>
+					<p class="text-gray-600 mt-1">Ideal untuk menampilkan trend data dari waktu ke waktu</p>
+				</div>
+				<Chart
+					id="lineChart"
+					type="line"
+					data={lineData}
+					height="350px"
+				/>
+			</div>
+
+			<!-- Bar Chart -->
+			<div class="bg-white rounded-lg shadow-md p-6 mb-8">
+				<div class="mb-4">
+					<h2 class="text-2xl font-bold text-gray-900">Bar Chart</h2>
+					<p class="text-gray-600 mt-1">Bagus untuk membandingkan data antar kategori</p>
+				</div>
+				<Chart
+					id="barChart"
+					type="bar"
+					data={barData}
+					height="350px"
+				/>
+			</div>
+
+			<!-- Two Column Grid -->
+			<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+				<!-- Pie Chart -->
+				<div class="bg-white rounded-lg shadow-md p-6">
+					<div class="mb-4">
+						<h2 class="text-2xl font-bold text-gray-900">Pie Chart</h2>
+						<p class="text-gray-600 mt-1">Menampilkan proporsi dari keseluruhan</p>
+					</div>
+					<Chart
+						id="pieChart"
+						type="pie"
+						data={pieData}
+						height="300px"
+					/>
+				</div>
+
+				<!-- Doughnut Chart -->
+				<div class="bg-white rounded-lg shadow-md p-6">
+					<div class="mb-4">
+						<h2 class="text-2xl font-bold text-gray-900">Doughnut Chart</h2>
+						<p class="text-gray-600 mt-1">Variasi pie chart dengan lubang di tengah</p>
+					</div>
+					<Chart
+						id="doughnutChart"
+						type="doughnut"
+						data={pieData}
+						height="300px"
+					/>
+				</div>
+			</div>
+
+			<!-- Radar Chart -->
+			<div class="bg-white rounded-lg shadow-md p-6 mb-8">
+				<div class="mb-4">
+					<h2 class="text-2xl font-bold text-gray-900">Radar Chart</h2>
+					<p class="text-gray-600 mt-1">Membandingkan multiple variabel dalam format melingkar</p>
+				</div>
+				<Chart
+					id="radarChart"
+					type="radar"
+					data={radarData}
+					height="400px"
+				/>
+			</div>
+
+			<!-- Two Column Grid -->
+			<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+				<!-- Polar Area Chart -->
+				<div class="bg-white rounded-lg shadow-md p-6">
+					<div class="mb-4">
+						<h2 class="text-2xl font-bold text-gray-900">Polar Area Chart</h2>
+						<p class="text-gray-600 mt-1">Mirip pie chart tapi dengan skala radius</p>
+					</div>
+					<Chart
+						id="polarChart"
+						type="polarArea"
+						data={polarData}
+						height="350px"
+					/>
+				</div>
+
+				<!-- Multi-line Chart -->
+				<div class="bg-white rounded-lg shadow-md p-6">
+					<div class="mb-4">
+						<h2 class="text-2xl font-bold text-gray-900">Multi-line Chart</h2>
+						<p class="text-gray-600 mt-1">Membandingkan multiple dataset sekaligus</p>
+					</div>
+					<Chart
+						id="multiLineChart"
+						type="line"
+						data={multiLineData}
+						height="350px"
+					/>
+				</div>
+			</div>
+
+			<!-- Code Example -->
+			<div class="bg-white rounded-lg shadow-md p-6">
+				<h2 class="text-2xl font-bold text-gray-900 mb-4">💻 Cara Penggunaan</h2>
+				<p class="text-gray-600 mb-4">
+					Untuk menggunakan komponen Chart, import dan gunakan seperti ini:
+				</p>
+				<div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+					<pre class="text-green-400 text-sm">
+{`---
+import Chart from '../components/Chart.astro';
+
+const data = {
+  labels: ['Jan', 'Feb', 'Mar'],
+  datasets: [{
+    label: 'Produksi',
+    data: [12, 19, 15],
+    borderColor: 'rgb(59, 130, 246)',
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+  }]
+};
+---
+
+<Chart
+  id="myChart"
+  type="line"
+  data={data}
+  height="300px"
+/>`}
+					</pre>
+				</div>
+			</div>
+
+		</main>
+
+		<!-- Footer -->
+		<footer class="bg-white border-t border-gray-200 mt-12">
+			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+				<p class="text-center text-gray-500 text-sm">
+					© 2024 Goat Milk Monitor. Dibuat dengan Astro, Tailwind CSS, dan Chart.js
+				</p>
+			</div>
+		</footer>
+	</div>
+</Layout>
