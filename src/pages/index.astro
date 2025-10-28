@@ -1,5 +1,30 @@
 ---
 // Goat Milk Monitor - Production Dashboard
+//
+// SENSORS YANG DIGUNAKAN:
+// 1. MQ135 - Gas Sensor (untuk deteksi bau/odor)
+//    - < 70 = Segar (1)
+//    - 70-100 = Sedang (0)
+//    - > 100 = Buruk (-1)
+//
+// 2. pH Sensor - Tingkat Keasaman (untuk deteksi rasa/taste)
+//    - 6.4-6.7 = Segar (1)
+//    - 6.2-6.9 = Sedang (0)
+//    - Lainnya = Buruk (-1)
+//
+// 3. TCS3200 - Color Sensor (untuk deteksi warna susu)
+//    - RGB dikonversi ke rata-rata (0-255)
+//    - ≥ 245 = Putih bersih (Baik)
+//    - 240-244 = Putih kekuningan (Sedang)
+//    - < 240 = Kekuningan (Buruk)
+//
+// DECISION TREE CLASSIFIER:
+// - Root Node: Odor (dari MQ135)
+// - Branch: Taste (dari pH)
+// - Leaf: pH range & Colour (dari TCS3200)
+// - Output: Baik / Sedang / Buruk
+//
+// CATATAN: Sensor suhu TIDAK digunakan dalam sistem ini
 ---
 
 <!doctype html>
@@ -301,9 +326,9 @@
                             style="margin: 0; padding-left: 20px; font-size: 0.8rem; color: #047857; line-height: 1.6;"
                         >
                             <li>pH: 6.5 - 6.8 (optimal)</li>
-                            <li>MQ135: &lt; 70 (udara segar)</li>
-                            <li>Bau &amp; Rasa: Segar</li>
-                            <li>Warna: Putih bersih (RGB tinggi)</li>
+                            <li>MQ135: &lt; 70 (bau segar)</li>
+                            <li>Rasa: Segar (pH 6.4-6.7)</li>
+                            <li>Warna: Putih bersih (RGB ≥ 245)</li>
                         </ul>
                     </div>
                 </div>
@@ -351,9 +376,9 @@
                             style="margin: 0; padding-left: 20px; font-size: 0.8rem; color: #b45309; line-height: 1.6;"
                         >
                             <li>pH: 6.2 - 6.9 (kurang optimal)</li>
-                            <li>MQ135: 70 - 100 (udara kurang baik)</li>
-                            <li>Warna: Putih kekuningan</li>
-                            <li>Segera gunakan</li>
+                            <li>MQ135: 70 - 100 (bau sedang)</li>
+                            <li>Warna: Putih kekuningan (RGB 240-244)</li>
+                            <li>⚠ Segera gunakan</li>
                         </ul>
                     </div>
                 </div>
@@ -400,10 +425,10 @@
                         <ul
                             style="margin: 0; padding-left: 20px; font-size: 0.8rem; color: #dc2626; line-height: 1.6;"
                         >
-                            <li>pH: &lt; 6.0 atau &gt; 7.2 (ekstrem)</li>
-                            <li>MQ135: &gt; 100 (udara buruk)</li>
-                            <li>Bau/Rasa: Tengik/Asam</li>
-                            <li>Warna: Kekuningan - Jangan konsumsi!</li>
+                            <li>pH: &lt; 6.0 atau &gt; 7.0 (ekstrem)</li>
+                            <li>MQ135: &gt; 100 (bau tengik/buruk)</li>
+                            <li>Rasa: Asam/Pahit</li>
+                            <li>⛔ Jangan konsumsi!</li>
                         </ul>
                     </div>
                 </div>
@@ -444,20 +469,29 @@
             /**
              * DECISION TREE CLASSIFIER - Goat Milk Quality Monitor
              *
-             * Menggunakan Decision Tree untuk mengklasifikasikan kualitas susu
-             * berdasarkan 7 parameter:
-             * 1. pH (6.5-6.8 optimal)
-             * 2. Temperature (4-8°C optimal)
-             * 3. Odor/Bau (dari MQ135: <70=segar, 70-100=sedang, >100=buruk)
-             * 4. Taste/Rasa (dari pH: 6.4-6.7=segar, 6.2-6.9=sedang, else=buruk)
-             * 5. Fat/Lemak (default 3.8% untuk susu kambing)
-             * 6. Turbidity/Kekeruhan (default 0 = jernih)
-             * 7. Colour/Warna (dari RGB: 245-255=baik)
+             * SIMPLIFIED VERSION - Hanya menggunakan 3 SENSOR:
              *
-             * Output: 3 kategori
-             * - Baik (Skor: 85) - Layak konsumsi
-             * - Sedang (Skor: 60) - Segera gunakan
-             * - Buruk (Skor: 30) - Buang!
+             * 1. MQ135 Gas Sensor → Odor/Bau
+             *    - < 70 = segar (1)
+             *    - 70-100 = sedang (0)
+             *    - > 100 = buruk (-1)
+             *
+             * 2. pH Sensor → Taste/Rasa
+             *    - 6.4-6.7 = segar (1)
+             *    - 6.2-6.9 = sedang (0)
+             *    - Lainnya = buruk (-1)
+             *
+             * 3. TCS3200 Color Sensor → Colour/Warna
+             *    - RGB average ≥ 245 = putih bersih (Baik)
+             *    - RGB average 240-244 = putih kekuningan (Sedang)
+             *    - RGB average < 240 = kekuningan (Buruk)
+             *
+             * ⚠️ CATATAN: Sensor suhu TIDAK digunakan dalam sistem ini
+             *
+             * Output: 3 kategori kualitas
+             * - 🟢 Baik (Skor: 85) - Layak konsumsi
+             * - 🟡 Sedang (Skor: 60) - Segera gunakan
+             * - 🔴 Buruk (Skor: 30) - Tidak layak konsumsi!
              */
 
             const FIREBASE_URL =
@@ -493,13 +527,15 @@
                 }
             }
 
-            // Decision Tree Classifier untuk Kualitas Susu
-            function assessQuality(
-                pH,
-                mq135,
-                temperature = 6,
-                rgb = "245,250,252",
-            ) {
+            // ========================================
+            // DECISION TREE CLASSIFIER
+            // ========================================
+            // Fungsi untuk menilai kualitas susu kambing
+            // Hanya menggunakan 3 sensor:
+            // - MQ135 (gas sensor) → odor
+            // - pH Sensor → taste
+            // - TCS3200 (color sensor) → colour
+            function assessQuality(pH, mq135, rgb = "245,250,252") {
                 // Convert RGB string to colour average
                 const rgbValues = rgb.split(",").map((v) => parseInt(v.trim()));
                 const colour = Math.round(
@@ -519,116 +555,111 @@
                           ? 0
                           : -1;
 
-                // Default values for parameters not from sensors
-                const fat = 3.8; // Average goat milk fat content
-                const turbidity = 0; // Assume clear
-
-                // Decision Tree Classification
-                return classifyWithDecisionTree(
-                    odor,
-                    taste,
-                    pH,
-                    temperature,
-                    fat,
-                    turbidity,
-                    colour,
-                );
+                // Decision Tree Classification (tanpa temperature)
+                return classifyWithDecisionTree(odor, taste, pH, colour);
             }
 
-            // Decision Tree Implementation
-            function classifyWithDecisionTree(
-                odor,
-                taste,
-                pH,
-                temperature,
-                fat,
-                turbidity,
-                colour,
-            ) {
-                // Root: odor
+            // ========================================
+            // DECISION TREE IMPLEMENTATION
+            // ========================================
+            // Simplified Decision Tree untuk 3 sensor
+            //
+            // STRUKTUR TREE:
+            //                   ROOT: Odor
+            //                  /      |      \
+            //           Buruk(-1)  Sedang(0)  Segar(1)
+            //                /        |          \
+            //            Taste?    Taste?      Taste?
+            //              |          |            |
+            //            pH?        pH?          pH?
+            //              |          |            |
+            //          Colour?    Colour?      Colour?
+            //              |          |            |
+            //          [Result]   [Result]    [Result]
+            //
+            function classifyWithDecisionTree(odor, taste, pH, colour) {
+                // ROOT NODE: Cek Odor (dari MQ135)
                 if (odor < 0) {
-                    // Bau buruk/tengik
-                    if (taste < -0.5) {
+                    // Bau buruk/tengik (MQ135 > 100)
+                    if (taste < 0) {
+                        // Rasa juga buruk
                         return "Buruk";
                     } else {
-                        if (pH < 6.0) {
+                        // Rasa normal tapi bau buruk
+                        if (pH < 6.0 || pH > 7.0) {
                             return "Buruk";
                         } else {
-                            if (temperature < 15) {
+                            return "Sedang";
+                        }
+                    }
+                } else if (odor === 0) {
+                    // Bau sedang (MQ135 70-100)
+                    if (taste < 0) {
+                        // Rasa buruk
+                        return "Buruk";
+                    } else if (taste === 0) {
+                        // Rasa sedang
+                        if (pH >= 6.3 && pH <= 6.8) {
+                            // pH OK
+                            if (colour >= 240) {
                                 return "Sedang";
                             } else {
                                 return "Buruk";
                             }
+                        } else {
+                            return "Sedang";
+                        }
+                    } else {
+                        // Rasa baik tapi bau sedang
+                        if (pH >= 6.4 && pH <= 6.7 && colour >= 245) {
+                            return "Sedang";
+                        } else {
+                            return "Sedang";
                         }
                     }
                 } else {
-                    // Bau normal atau segar
-                    if (taste < 0.5) {
-                        if (pH < 6.3) {
-                            return "Sedang";
-                        } else {
-                            if (temperature < 10) {
+                    // Bau segar (MQ135 < 70) - KUALITAS TERBAIK
+                    if (taste < 0) {
+                        // Bau segar tapi rasa buruk
+                        return "Sedang";
+                    } else if (taste === 0) {
+                        // Bau segar, rasa sedang
+                        if (pH >= 6.3 && pH <= 6.8) {
+                            if (colour >= 245) {
                                 return "Sedang";
                             } else {
-                                if (turbidity < 1.5) {
-                                    return "Sedang";
-                                } else {
-                                    return "Buruk";
-                                }
+                                return "Sedang";
                             }
+                        } else {
+                            return "Sedang";
                         }
                     } else {
-                        // Rasa segar
-                        if (pH < 6.5) {
-                            if (temperature < 8) {
+                        // Bau segar DAN rasa segar (BEST CASE)
+                        if (pH >= 6.5 && pH <= 6.8) {
+                            // pH OPTIMAL
+                            if (colour >= 245) {
+                                // Warna putih bersih
+                                return "Baik"; // ✅ KUALITAS BAIK!
+                            } else if (colour >= 240) {
+                                // Warna agak kuning
+                                return "Sedang";
+                            } else {
+                                // Warna terlalu gelap
+                                return "Sedang";
+                            }
+                        } else if (pH >= 6.4 && pH <= 6.9) {
+                            // pH masih OK
+                            if (colour >= 245) {
                                 return "Sedang";
                             } else {
                                 return "Sedang";
                             }
                         } else {
-                            // pH >= 6.5
-                            if (pH < 6.9) {
-                                // pH optimal 6.5-6.9
-                                if (temperature < 4) {
-                                    return "Sedang";
-                                } else {
-                                    if (temperature < 8) {
-                                        // Suhu optimal 4-8°C
-                                        if (fat < 3.5) {
-                                            if (colour < 240) {
-                                                return "Sedang";
-                                            } else {
-                                                return "Sedang";
-                                            }
-                                        } else {
-                                            // Fat >= 3.5% (baik)
-                                            if (turbidity < 0.5) {
-                                                // Jernih
-                                                if (colour < 245) {
-                                                    return "Sedang";
-                                                } else {
-                                                    return "Baik"; // ✅ KUALITAS BAIK!
-                                                }
-                                            } else {
-                                                return "Sedang";
-                                            }
-                                        }
-                                    } else {
-                                        // Temp > 8°C
-                                        if (temperature < 12) {
-                                            return "Sedang";
-                                        } else {
-                                            return "Buruk";
-                                        }
-                                    }
-                                }
+                            // pH tidak optimal
+                            if (pH < 6.0 || pH > 7.0) {
+                                return "Buruk";
                             } else {
-                                // pH > 6.9
-                                if (pH < 7.2) {
-                                    return "Sedang";
-                                } else {
-                                    return "Buruk";
-                                }
+                                return "Sedang";
                             }
                         }
                     }
@@ -638,19 +669,33 @@
             function processReadings(data) {
                 if (!data) return [];
 
-                const readings = Object.entries(data).map(([id, reading]) => ({
-                    id,
-                    ...reading,
-                    dateTime: new Date(reading.timestamp),
-                    quality: assessQuality(
-                        reading.pH,
-                        reading.mq135,
-                        reading.temperature,
-                        reading.rgb,
-                    ),
-                }));
+                // ============================================================
+                // TIMESTAMP HANDLING
+                // ============================================================
+                // Gunakan waktu SEKARANG untuk display, BUKAN timestamp dari Firebase
+                // Alasan: Timestamp di Firebase mungkin tidak akurat/ngaco
+                // Solusi: Display waktu real-time saat data dibaca
+                const now = new Date();
 
-                return readings.sort((a, b) => b.dateTime - a.dateTime);
+                const readings = Object.entries(data).map(
+                    ([id, reading], index) => ({
+                        id,
+                        ...reading,
+                        originalTimestamp: reading.timestamp, // Simpan timestamp asli untuk sorting
+                        dateTime: now, // Display waktu sekarang
+                        quality: assessQuality(
+                            reading.pH,
+                            reading.mq135,
+                            reading.rgb,
+                        ),
+                    }),
+                );
+
+                // Sort berdasarkan timestamp asli dari Firebase (yang terbaru dulu)
+                // Tapi display akan tetap pakai waktu sekarang
+                return readings.sort(
+                    (a, b) => b.originalTimestamp - a.originalTimestamp,
+                );
             }
 
             function updateLatestReading(reading) {
@@ -699,8 +744,10 @@
                     </div>
                 </div>
                 <div class="reading-item">
-                    <small style="color: #666;">Waktu</small>
-                    <div style="font-size: 0.9rem; margin-top: 5px;">${reading.dateTime.toLocaleString("id-ID")}</div>
+                    <small style="color: #666;">Waktu Pembacaan</small>
+                    <div style="font-size: 0.9rem; margin-top: 5px;">
+                        <strong style="color: #10b981;">● LIVE</strong> - ${reading.dateTime.toLocaleString("id-ID")}
+                    </div>
                 </div>
             `;
                 container.style.display = "block";
@@ -963,48 +1010,74 @@
             }
 
             async function loadData() {
-                console.log("Loading data from Firebase...");
-                const statusText = document.getElementById("status-text");
-                const statusIndicator =
-                    document.getElementById("status-indicator");
+                try {
+                    const statusText = document.getElementById("status-text");
+                    const statusIndicator =
+                        document.getElementById("status-indicator");
 
-                if (statusText) statusText.textContent = "Loading...";
-                if (statusIndicator)
-                    statusIndicator.style.background = "#f59e0b";
+                    if (statusText) statusText.textContent = "Loading...";
+                    if (statusIndicator)
+                        statusIndicator.style.background = "#f59e0b";
 
-                const data = await fetchFirebaseData();
+                    const data = await fetchFirebaseData();
 
-                if (!data) {
-                    console.error("No data received");
-                    return;
-                }
+                    if (!data) {
+                        console.error("No data received");
+                        return;
+                    }
 
-                console.log("Raw data:", data);
-                const readings = processReadings(data);
-                console.log("Processed readings:", readings);
+                    console.log("Raw data:", data);
+                    const readings = processReadings(data);
+                    console.log("Processed readings:", readings);
 
-                if (readings.length === 0) {
+                    if (readings.length === 0) {
+                        if (statusText)
+                            statusText.textContent = "No data in Firebase";
+                        if (statusIndicator)
+                            statusIndicator.style.background = "#ef4444";
+                        return;
+                    }
+
                     if (statusText)
-                        statusText.textContent = "No data in Firebase";
+                        statusText.textContent = `Connected - ${readings.length} readings`;
+                    if (statusIndicator)
+                        statusIndicator.style.background = "#10b981";
+
+                    updateLatestReading(readings[0]);
+                    updateStats(readings);
+                    createPHChart(readings);
+                    createMQ135Chart(readings);
+                    createQualityChart(readings);
+                    createCombinedChart(readings);
+
+                    console.log("All charts created successfully!");
+                } catch (error) {
+                    console.error("Error in loadData:", error);
+                    const statusText = document.getElementById("status-text");
+                    const statusIndicator =
+                        document.getElementById("status-indicator");
+                    if (statusText)
+                        statusText.textContent = "Error loading data";
                     if (statusIndicator)
                         statusIndicator.style.background = "#ef4444";
+                }
+            }
+
+            // Global error handler untuk mencegah error dari extension browser
+            window.addEventListener("error", (event) => {
+                // Ignore errors dari chrome extensions
+                if (
+                    event.filename &&
+                    event.filename.includes("chrome-extension://")
+                ) {
+                    console.warn(
+                        "Ignored error from browser extension:",
+                        event.message,
+                    );
+                    event.preventDefault();
                     return;
                 }
-
-                if (statusText)
-                    statusText.textContent = `Connected - ${readings.length} readings`;
-                if (statusIndicator)
-                    statusIndicator.style.background = "#10b981";
-
-                updateLatestReading(readings[0]);
-                updateStats(readings);
-                createPHChart(readings);
-                createMQ135Chart(readings);
-                createQualityChart(readings);
-                createCombinedChart(readings);
-
-                console.log("All charts created successfully!");
-            }
+            });
 
             window.addEventListener("load", () => {
                 console.log("Page loaded, fetching data...");
